@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Residentes - Edificio El Mirador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #0077cc;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        nav {
+            background-color: #0077cc;
+            padding: 15px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 20px;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #0077cc;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #0077cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        table th {
+            background-color: #0077cc;
+            color: white;
+        }
+        table td a {
+            color: #0077cc;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        table td a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú de navegación -->
+    <nav>
+        <a href="{{ url_for('index') }}">Inicio</a>
+        <a href="{{ url_for('gestionpago') }}">Gestión de Pagos</a>
+        <a href="{{ url_for('gestionresidente') }}">Gestión de Residentes</a>
+        <a href="{{ url_for('solicitudyquejas') }}">Solicitudes y Quejas</a>
+        <a href="{{ url_for('registropersonal') }}">Registro de Personal</a>
+    </nav>
+
+    <header>
+        <h1>Gestión de Residentes - Edificio El Mirador</h1>
+    </header>
+
+    <div class="container" id="registrar">
+        <h2>Formulario de Registro</h2>
+        <form id="formularioRegistro" onsubmit="return registrarPersona(event)">
+            <label for="nombre">Nombre Completo:</label>
+            <input type="text" id="nombre" name="nombre" required placeholder="Ingrese el nombre completo">
+
+            <label for="contacto">Número de Contacto:</label>
+            <input type="tel" id="contacto" name="contacto" required placeholder="Ingrese el número de contacto">
+
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" name="email" required placeholder="Ingrese el correo electrónico">
+
+            <label for="direccion">Dirección del Departamento:</label>
+            <input type="text" id="direccion" name="direccion" required placeholder="Ingrese la dirección del departamento">
+
+            <label for="tipo-residencia">Tipo de Residencia:</label>
+            <select id="tipo-residencia" name="tipo-residencia" required>
+                <option value="propietario">Propietario</option>
+                <option value="arrendatario">Arrendatario</option>
+            </select>
+
+            <label for="emergencia">Contacto en caso de emergencia:</label>
+            <input type="tel" id="emergencia" name="emergencia" required placeholder="Número de contacto de emergencia">
+
+            <button type="submit">Registrar</button>
+        </form>
+    </div>
+
+    <div class="container" id="listado">
+        <h2>Lista de Residentes</h2>
+        <table id="tablaResidentes">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Contacto</th>
+                    <th>Email</th>
+                    <th>Dirección</th>
+                    <th>Tipo de Residencia</th>
+                    <th>Emergencia</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se mostrarán los residentes -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let personas = [];
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('tablaResidentes').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            personas.forEach((persona, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${persona.nombre}</td>
+                    <td>${persona.contacto}</td>
+                    <td>${persona.email}</td>
+                    <td>${persona.direccion}</td>
+                    <td>${persona.tipo_residencia}</td>
+                    <td>${persona.emergencia}</td>
+                    <td>
+                        <a href="javascript:editarPersona(${index})">Editar</a>
+                        <a href="javascript:eliminarPersona(${index})">Eliminar</a>
+                    </td>
+                `;
+            });
+        }
+
+        function registrarPersona(event) {
+            event.preventDefault();
+
+            const nuevaPersona = {
+                nombre: document.getElementById('nombre').value,
+                contacto: document.getElementById('contacto').value,
+                email: document.getElementById('email').value,
+                direccion: document.getElementById('direccion').value,
+                tipo_residencia: document.getElementById('tipo-residencia').value,
+                emergencia: document.getElementById('emergencia').value
+            };
+
+            personas.push(nuevaPersona);
+            actualizarTabla();
+
+            document.getElementById('formularioRegistro').reset();
+        }
+
+        function editarPersona(index) {
+            const persona = personas[index];
+            document.getElementById('nombre').value = persona.nombre;
+            document.getElementById('contacto').value = persona.contacto;
+            document.getElementById('email').value = persona.email;
+            document.getElementById('direccion').value = persona.direccion;
+            document.getElementById('tipo-residencia').value = persona.tipo_residencia;
+            document.getElementById('emergencia').value = persona.emergencia;
+
+            personas.splice(index, 1); // Eliminar la persona de la lista
+        }
+
+        function eliminarPersona(index) {
+            if (confirm('¿Estás seguro de eliminar esta persona?')) {
+                personas.splice(index, 1);
+                actualizarTabla();
+            }
+        }
+    </script>
+
+</body>
+</html>

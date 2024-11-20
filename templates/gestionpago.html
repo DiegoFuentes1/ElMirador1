@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pagos - Edificio El Mirador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #0077cc;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        nav {
+            background-color: #004a8f;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #0077cc;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0 5px;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #0077cc;
+            color: white;
+        }
+        .action-buttons button {
+            background-color: #f44336;
+            margin: 0 5px;
+        }
+        .action-buttons button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Edificio El Mirador - Gestión de Pagos</h1>
+    </header>
+    <nav>
+        <a href="{{ url_for('index') }}">Inicio</a>
+        <a href="{{ url_for('gestionpago') }}">Gestión Pago</a>
+        <a href="{{ url_for('gestionresidente') }}">Gestión Residente</a>
+        <a href="{{ url_for('solicitudyquejas') }}">Solicitudes y Quejas</a>
+        <a href="{{ url_for('registropersonal') }}">Registro Personal</a>
+    </nav>
+    <div class="container">
+        <h2>Formulario de Gestión de Pagos</h2>
+
+        <!-- Formulario para registrar pagos -->
+        <form id="payment-form">
+            <label for="residente">Residente:</label>
+            <input type="text" id="residente" name="residente" required>
+
+            <label for="tipo_pago">Tipo de pago:</label>
+            <select id="tipo_pago" name="tipo_pago" required>
+                <option value="gasto_comun">Gasto común</option>
+                <option value="gasto_extraordinario">Gasto extraordinario</option>
+                <option value="otro_servicio">Otro servicio</option>
+            </select>
+
+            <label for="monto">Monto:</label>
+            <input type="number" id="monto" name="monto" required>
+
+            <label for="fecha_pago">Fecha de pago:</label>
+            <input type="date" id="fecha_pago" name="fecha_pago" required>
+
+            <label for="descripcion">Descripción (opcional):</label>
+            <textarea id="descripcion" name="descripcion" rows="4"></textarea>
+
+            <button type="submit">Registrar pago</button>
+        </form>
+
+        <h3>Lista de Pagos Registrados</h3>
+        <table id="payments-table">
+            <thead>
+                <tr>
+                    <th>Residente</th>
+                    <th>Tipo de Pago</th>
+                    <th>Monto</th>
+                    <th>Fecha de Pago</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los pagos registrados se mostrarán aquí -->
+            </tbody>
+        </table>
+
+        <h3>Generar Recibo de Pago</h3>
+        <form id="receipt-form">
+            <label for="id_pago">ID de pago:</label>
+            <input type="text" id="id_pago" name="id_pago" required>
+            <button type="submit">Generar recibo</button>
+        </form>
+
+        <h3>Enviar Recordatorio de Pago</h3>
+        <form id="reminder-form">
+            <label for="id_residente">ID Residente:</label>
+            <input type="text" id="id_residente" name="id_residente" required>
+            <button type="submit">Enviar recordatorio</button>
+        </form>
+    </div>
+
+    <script>
+        let pagos = [];
+        let nextId = 1;
+
+        // Función para renderizar la tabla de pagos
+        function renderTable() {
+            const tableBody = document.querySelector('#payments-table tbody');
+            tableBody.innerHTML = '';  // Limpiar tabla
+
+            pagos.forEach((pago, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${pago.residente}</td>
+                    <td>${pago.tipo_pago}</td>
+                    <td>${pago.monto}</td>
+                    <td>${pago.fecha_pago}</td>
+                    <td>${pago.descripcion || 'N/A'}</td>
+                    <td class="action-buttons">
+                        <button onclick="editPago(${index})">Editar</button>
+                        <button onclick="deletePago(${index})">Eliminar</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Función para registrar un pago
+        document.getElementById('payment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const residente = document.getElementById('residente').value;
+            const tipo_pago = document.getElementById('tipo_pago').value;
+            const monto = document.getElementById('monto').value;
+            const fecha_pago = document.getElementById('fecha_pago').value;
+            const descripcion = document.getElementById('descripcion').value;
+
+            pagos.push({ id: nextId++, residente, tipo_pago, monto, fecha_pago, descripcion });
+            document.getElementById('payment-form').reset();
+            renderTable();
+        });
+
+        // Función para editar un pago
+        function editPago(index) {
+            const pago = pagos[index];
+            document.getElementById('residente').value = pago.residente;
+            document.getElementById('tipo_pago').value = pago.tipo_pago;
+            document.getElementById('monto').value = pago.monto;
+            document.getElementById('fecha_pago').value = pago.fecha_pago;
+            document.getElementById('descripcion').value = pago.descripcion;
+            pagos.splice(index, 1);
+        }
+
+        // Función para eliminar un pago
+        function deletePago(index) {
+            pagos.splice(index, 1);
+            renderTable();
+        }
+
+        // Inicializar la tabla de pagos
+        renderTable();
+    </script>
+</body>
+</html>

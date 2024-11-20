@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Residentes - Edificio El Mirador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #0077cc;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        nav {
+            background-color: #004a8f;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #0077cc;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0 5px;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #0077cc;
+            color: white;
+        }
+        .action-buttons button {
+            background-color: #f44336;
+            margin: 0 5px;
+        }
+        .action-buttons button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Edificio El Mirador - Gestión de Residentes</h1>
+    </header>
+    <nav>
+        <a href="{{ url_for('index') }}">Inicio</a>
+        <a href="{{ url_for('gestionpago') }}">Gestión Pago</a>
+        <a href="{{ url_for('gestionresidente') }}">Gestión Residente</a>
+        <a href="{{ url_for('solicitudyquejas') }}">Solicitudes y Quejas</a>
+        <a href="{{ url_for('registropersonal') }}">Registro Personal</a>
+    </nav>
+    <div class="container">
+        <h2>Formulario de Registro de Residentes</h2>
+
+        <!-- Formulario para registrar residentes -->
+        <form id="resident-form">
+            <label for="nombre">Nombre completo:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="tipo_residencia">Tipo de residencia:</label>
+            <select id="tipo_residencia" name="tipo_residencia" required>
+                <option value="propietario">Propietario</option>
+                <option value="arrendatario">Arrendatario</option>
+                <option value="personal">Personal</option>
+            </select>
+
+            <label for="contacto">Número de contacto:</label>
+            <input type="text" id="contacto" name="contacto" required>
+
+            <label for="departamento">Departamento:</label>
+            <input type="text" id="departamento" name="departamento" required>
+
+            <label for="email">Correo electrónico:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="contacto_emergencia">Contacto de emergencia:</label>
+            <input type="text" id="contacto_emergencia" name="contacto_emergencia" required>
+
+            <label for="observaciones">Observaciones adicionales:</label>
+            <textarea id="observaciones" name="observaciones" rows="4"></textarea>
+
+            <button type="submit">Registrar residente</button>
+        </form>
+
+        <h3>Lista de Residentes Registrados</h3>
+        <table id="residents-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo de Residencia</th>
+                    <th>Contacto</th>
+                    <th>Departamento</th>
+                    <th>Email</th>
+                    <th>Emergencia</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los residentes registrados se mostrarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let residentes = [];
+        let nextId = 1;
+
+        // Función para renderizar la tabla de residentes
+        function renderTable() {
+            const tableBody = document.querySelector('#residents-table tbody');
+            tableBody.innerHTML = '';  // Limpiar tabla
+
+            residentes.forEach((residente, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${residente.nombre}</td>
+                    <td>${residente.tipo_residencia}</td>
+                    <td>${residente.contacto}</td>
+                    <td>${residente.departamento}</td>
+                    <td>${residente.email}</td>
+                    <td>${residente.contacto_emergencia}</td>
+                    <td class="action-buttons">
+                        <button onclick="editResidente(${index})">Editar</button>
+                        <button onclick="deleteResidente(${index})">Eliminar</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Función para registrar un residente
+        document.getElementById('resident-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const nombre = document.getElementById('nombre').value;
+            const tipo_residencia = document.getElementById('tipo_residencia').value;
+            const contacto = document.getElementById('contacto').value;
+            const departamento = document.getElementById('departamento').value;
+            const email = document.getElementById('email').value;
+            const contacto_emergencia = document.getElementById('contacto_emergencia').value;
+            const observaciones = document.getElementById('observaciones').value;
+
+            residentes.push({
+                id: nextId++, 
+                nombre, 
+                tipo_residencia, 
+                contacto, 
+                departamento, 
+                email, 
+                contacto_emergencia, 
+                observaciones
+            });
+            document.getElementById('resident-form').reset();
+            renderTable();
+        });
+
+        // Función para editar un residente
+        function editResidente(index) {
+            const residente = residentes[index];
+            document.getElementById('nombre').value = residente.nombre;
+            document.getElementById('tipo_residencia').value = residente.tipo_residencia;
+            document.getElementById('contacto').value = residente.contacto;
+            document.getElementById('departamento').value = residente.departamento;
+            document.getElementById('email').value = residente.email;
+            document.getElementById('contacto_emergencia').value = residente.contacto_emergencia;
+            document.getElementById('observaciones').value = residente.observaciones;
+            residentes.splice(index, 1);
+        }
+
+        // Función para eliminar un residente
+        function deleteResidente(index) {
+            residentes.splice(index, 1);
+            renderTable();
+        }
+
+        // Inicializar la tabla de residentes
+        renderTable();
+    </script>
+</body>
+</html>
